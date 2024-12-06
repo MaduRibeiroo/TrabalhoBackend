@@ -1,29 +1,26 @@
-//É a classe responsável por traduzir requisições HTTP e produzir respostas HTTP
-import Categoria from "../Modelo/categoria.js";
+import Privilegio from "../Modelo/privilegio.js";
 
-export default class CategoriaCtrl{
+export default class PrivilegioCtrl{
 
     gravar(requisicao, resposta){
         resposta.type("application/json");
         if (requisicao.method == 'POST' && requisicao.is("application/json")){
             const descricao  = requisicao.body.descricao;
-            //pseudo validação
             if (descricao)
             {
-                //gravar a categoria
-                const categoria = new Categoria(0,descricao);
-                categoria.gravar()
+                const privilegio = new Privilegio(0,descricao);
+                privilegio.gravar()
                 .then(()=>{
                     resposta.status(200).json({
                         "status":true,
-                        "mensagem":"Categoria adicionada com sucesso!",
-                        "codigo": categoria.codigo
+                        "mensagem":"Privilegio de sistema adicionada com sucesso!",
+                        "codigo": privilegio.codigo
                     });
                 })
                 .catch((erro)=>{
                     resposta.status(500).json({
                         "status":false,
-                        "mensagem":"Não foi possível incluir a categoria: " + erro.message
+                        "mensagem":"Não foi possível incluir o privilegio de sistema: " + erro.message
                     });
                 });
             }
@@ -32,7 +29,7 @@ export default class CategoriaCtrl{
                 resposta.status(400).json(
                     {
                         "status":false,
-                        "mensagem":"Informe corretamente todos os dados de uma categoria conforme documentação da API."
+                        "mensagem":"Informe corretamente todos os dados de um privilegio conforme documentação da API."
                     }
                 );
             }
@@ -50,29 +47,24 @@ export default class CategoriaCtrl{
     }
 
     editar(requisicao, resposta){
-        //preparar o destinatário que a resposta estará no formato JSON
         resposta.type("application/json");
-        //Verificando se o método da requisição é POST e conteúdo é JSON
         if ((requisicao.method == 'PUT' || requisicao.method == 'PATCH') && requisicao.is("application/json")){
-            //o código será extraída da URL (padrão REST)
             const codigo     = requisicao.params.codigo;
             const descricao  = requisicao.body.descricao;
-            
-            //pseudo validação
+
             if (codigo > 0 && descricao)
             {
-                //alterar a categoria
-                const categoria = new Categoria(codigo,descricao);
-                categoria.editar().then(()=>{
+                const privilegio = new Privilegio(codigo,descricao);
+                privilegio.editar().then(()=>{
                     resposta.status(200).json({
                         "status":true,
-                        "mensagem":"categoria alterada com sucesso!",
+                        "mensagem":"Privilegio alterado com sucesso!",
                     });
                 })
                 .catch((erro)=>{
                     resposta.status(500).json({
                         "status":false,
-                        "mensagem":"Não foi possível alterar a categoria: " + erro.message
+                        "mensagem":"Não foi possível alterar o privilegio: " + erro.message
                     });
                 });
             }
@@ -81,7 +73,7 @@ export default class CategoriaCtrl{
                 resposta.status(400).json(
                     {
                         "status":false,
-                        "mensagem":"Informe corretamente todos os dados de uma categoria conforme documentação da API."
+                        "mensagem":"Informe corretamente todos os dados de um privilegio conforme documentação da API."
                     }
                 );
             }
@@ -97,28 +89,23 @@ export default class CategoriaCtrl{
     }
 
     excluir(requisicao, resposta){
-        //preparar o destinatário que a resposta estará no formato JSON
         resposta.type("application/json");
-        //Verificando se o método da requisição é POST e conteúdo é JSON
         if (requisicao.method == 'DELETE'){
-            //o código será extraída da URL (padrão REST)
             const codigo = requisicao.params.codigo;
-            //pseudo validação
             if (codigo > 0)
             {
-                //alterar o categoria
-                const categoria = new Categoria(codigo);
-                categoria.excluir()
+                const privilegio = new Privilegio(codigo);
+                privilegio.excluir()
                 .then(()=>{
                     resposta.status(200).json({
                         "status":true,
-                        "mensagem":"categoria excluída com sucesso!",
+                        "mensagem":"Privilegio excluída com sucesso!",
                     });
                 })
                 .catch((erro)=>{
                     resposta.status(500).json({
                         "status":false,
-                        "mensagem":"Não foi possível excluir o categoria: " + erro.message
+                        "mensagem":"Não foi possível excluir o privilegio: " + erro.message
                     });
                 });
             }
@@ -127,7 +114,7 @@ export default class CategoriaCtrl{
                 resposta.status(400).json(
                     {
                         "status":false,
-                        "mensagem":"Informe um código válido de uma categoria conforme documentação da API."
+                        "mensagem":"Informe um código válido de um privilegio conforme documentação da API."
                     }
                 );
             }
@@ -147,16 +134,14 @@ export default class CategoriaCtrl{
         resposta.type("application/json");
         if (requisicao.method=="GET"){
             let codigo = requisicao.params.codigo;
-            //evitar que código tenha valor undefined
             if (isNaN(codigo)){
                 codigo = "";
             }
 
-            const categoria = new Categoria();
-            //método consultar retorna uma lista de categorias
-            categoria.consultar(codigo)
-            .then((listaCategorias) =>{
-                resposta.status(200).json(listaCategorias
+            const privilegios = new Privilegios();
+            privilegios.consultar(codigo)
+            .then((listaPrivilegios) =>{
+                resposta.status(200).json(listaPrivilegios
                     /*{
                         "status": true,
                         "listacategorias": listacategorias
@@ -167,7 +152,7 @@ export default class CategoriaCtrl{
                 resposta.status(500).json(
                     {
                         "status":false,
-                        "mensagem":"Erro ao consultar categorias:" + erro.message    
+                        "mensagem":"Erro ao consultar privilegios:" + erro.message    
                     }
                 );
             });

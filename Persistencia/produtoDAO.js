@@ -74,6 +74,7 @@ export default class ProdutoDAO {
             await conexao.release(); //libera a conexão
         }
     }
+    
     async consultar(termo) {
         //resuperar as linhas da tabela produto e transformá-las de volta em produtos
         const conexao = await conectar();

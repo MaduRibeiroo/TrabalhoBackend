@@ -1,4 +1,5 @@
 import Usuario from "../Modelo/usuario.js";
+import Privilegio from "../Modelo/privilegio.js";
 import conectar from "./Conexao.js";
 export default class UsuarioDAO {
     constructor() {
@@ -17,7 +18,9 @@ export default class UsuarioDAO {
                 user_senha VARCHAR(200) NOT NULL,
                 user_idade INT NOT NULL DEFAULT 0,
                 user_endereco VARCHAR(200),
-                CONSTRAINT pk_usuario PRIMARY KEY(user_id)
+                fk_codigo_pri INT NOT NULL,
+                CONSTRAINT pk_usuario PRIMARY KEY(user_id),
+                CONSTRAINT fk_privilegio FOREIGN KEY(fk_codigo_pri) REFERENCES privilegio(codigo)
             )
         `;
             await conexao.execute(sql);
@@ -31,7 +34,7 @@ export default class UsuarioDAO {
     async incluir(usuario) {
         if (usuario instanceof Usuario) {
             const conexao = await conectar();
-            const sql = `INSERT INTO usuario(user_nome,user_email,user_senha,user_idade,user_senha)
+            const sql = `INSERT INTO usuario(user_nome,user_email,user_senha,user_idade,user_senha, fk_codigo_pri)
                 VALUES (?, ?, ?, ?, ?)
             `;
             let parametros = [
@@ -39,7 +42,8 @@ export default class UsuarioDAO {
                 usuario.email,
                 usuario.senha,
                 usuario.idade,
-                usuario.endereco
+                usuario.endereco,
+                usuario.privilegio.codigo
             ]; 
             const resultado = await conexao.execute(sql, parametros);
             usuario.id = resultado[0].insertId;
@@ -49,7 +53,7 @@ export default class UsuarioDAO {
     async alterar(usuario) {
         if (usuario instanceof Usuario) {
             const conexao = await conectar();
-            const sql = `UPDATE usuario SET user_nome=?,user_email=?,user_senha=?,user_idade=?,user_endereco=?
+            const sql = `UPDATE usuario SET user_nome=?,user_email=?,user_senha=?,user_idade=?,user_endereco=?,fk_codigo_pri = ?
                 WHERE user_id = ?
             `;
             let parametros = [
@@ -58,36 +62,42 @@ export default class UsuarioDAO {
                 usuario.senha,
                 usuario.idade,
                 usuario.endereco,
+                usuario.privilegio.codigo,
                 usuario.id
             ]; 
             await conexao.execute(sql, parametros);
             await conexao.release(); //libera a conexão
         }
     }
+
     async consultar(termo) {
         const conexao = await conectar();
         let sql = "";
         let parametros = [];
         if (isNaN(parseInt(termo))) {
-            sql = `SELECT * FROM usuario
+            sql = `SELECT * FROM usuario u
+                   INNER JOIN privilegio p ON p.fk_codigo_pri = u.id
                    WHERE user_nome LIKE ?`;
             parametros = ['%' + termo + '%'];
         }
         else {
-            sql = `SELECT * FROM usuario
+            sql = `SELECT * FROM usuario u
+                   INNER JOIN privilegio p ON p.fk_codigo_pri = u.id
                    WHERE user_id = ?`
             parametros = [termo];
         }
         const [linhas, campos] = await conexao.execute(sql, parametros);
         let listaUsuarios = [];
         for (const linha of linhas) {
+            const privilegio = new Privilegio(linha['codigo'],linha["descricao"]); 
             const usuario = new Usuario(
                 linha['user_id'],
                 linha['user_nome'],
                 linha['user_email'],
                 linha['user_senha'],
                 linha['user_idade'],
-                linha['user_endereco']
+                linha['user_endereco'],
+                privilegio
             );
             listaUsuarios.push(usuario);
         }
